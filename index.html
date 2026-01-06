@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>거지 키우기: 부동산 독점 모드</title>
+    <title>거지 키우기: 클릭의 제왕</title>
     <style>
         body {
             font-family: 'Malgun Gothic', sans-serif;
@@ -38,9 +38,10 @@
             align-items: flex-end;
             padding-bottom: 20px;
             border: 4px solid #bdc3c7;
+            overflow-x: auto; /* 친구가 많아지면 스크롤 가능 */
         }
 
-        .character-box { display: flex; flex-direction: column; align-items: center; margin: 0 5px; }
+        .character-box { display: flex; flex-direction: column; align-items: center; margin: 0 5px; flex-shrink: 0; }
         .emoji { font-size: 55px; }
         .name-tag { background: rgba(255,255,255,0.9); color: black; padding: 2px 6px; border-radius: 5px; font-size: 11px; margin-top: 5px; font-weight: bold; }
 
@@ -77,13 +78,11 @@
         .btn-friend { background: #e74c3c; color: white; }
         .btn-building { background: #e67e22; color: white; }
 
-        /* 매입 완료(더 이상 구매 불가) 스타일 */
         button:disabled {
             background: #2c3e50 !important;
             color: #7f8c8d !important;
             cursor: not-allowed !important;
             opacity: 0.7;
-            transform: none !important;
         }
 
         #log { margin-top: 20px; font-size: 14px; color: #f1c40f; min-height: 20px; font-weight: bold; }
@@ -95,8 +94,8 @@
         <div style="font-size: 16px; color: #f1c40f;">[ <span id="rank-name">길거리 거지</span> ]</div>
         <div style="font-size: 32px; margin: 10px 0;">💰 <span id="money">0</span> 원</div>
         <div style="display: flex; justify-content: space-around; font-size: 14px; opacity: 0.9;">
-            <span>👆 클릭: +<span id="click-power">1</span>원</span>
-            <span>⏱️ 자동: +<span id="auto-income">0</span>원/초</span>
+            <span>👆 클릭 수익: +<span id="click-power">1</span>원</span>
+            <span>⏱️ 자동 수익: +<span id="auto-income">0</span>원/초</span>
         </div>
     </div>
 
@@ -109,33 +108,36 @@
     </div>
 
     <div class="controls">
-        <button class="btn-click" onclick="earnMoney()">💵 돈 벌기 (무한 광클!)</button>
+        <button class="btn-click" onclick="earnMoney()">💵 돈 벌기 (광클하세요!)</button>
         
         <button class="btn-upgrade" id="upgradeBtn" onclick="levelUp()">
             🔼 신분 상승 (<span id="upgradeCost">100</span>원)
         </button>
         
         <button class="btn-friend" id="friendBtn" onclick="buyFriend()">
-            🤝 친구 고용 (<span id="friendCost">50</span>원)
+            🤝 친구 고용 (<span id="friendCost">100</span>원)
         </button>
 
-        <button class="btn-building" id="b1" onclick="buyBuilding(5000000, '원룸 빌딩', 20000, 'https://images.unsplash.com/photo-1580587767303-9fef00826514?w=600')">🏢 원룸 매입 (500만)</button>
-        <button class="btn-building" id="b2" onclick="buyBuilding(100000000, '강남 빌딩', 500000, 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600')">🏙️ 강남 빌딩 (1억)</button>
-        <button class="btn-building" id="b3" onclick="buyBuilding(2000000000, '초호화 호텔', 15000000, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600')">🏰 호텔 매입 (20억)</button>
-        <button class="btn-building" id="b4" onclick="buyBuilding(50000000000, '우주 정거장', 1000000000, 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600')">🚀 우주 기지 (500억)</button>
+        <button class="btn-building" id="b1" onclick="buyBuilding(10000000, '아파트', 30000, 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600')">🏢 아파트 매입 (1,000만)</button>
+        <button class="btn-building" id="b2" onclick="buyBuilding(500000000, '쇼핑몰', 1000000, 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=600')">🏙️ 쇼핑몰 매입 (5억)</button>
+        <button class="btn-building" id="b3" onclick="buyBuilding(5000000000, '랜드마크 빌딩', 20000000, 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600')">🏰 랜드마크 (50억)</button>
+        <button class="btn-building" id="b4" onclick="buyBuilding(100000000000, '화성 기지', 1000000000, 'https://images.unsplash.com/photo-1614728263952-84ea206f25ab?w=600')">🚀 화성 기지 (1,000억)</button>
     </div>
 
-    <div id="log">인생 역전의 꿈을 향해 클릭하세요!</div>
+    <div id="log">클릭 효율이 대폭 강화되었습니다! 신분을 올리세요.</div>
 
     <script>
         let money = 0;
         let clickPower = 1;
         let autoIncome = 0;
         let level = 1;
-        let upgradeCost = 100;
+        let upgradeCost = 100; // 신분 상승 초기 비용
         let friends = 0;
-        let friendCost = 50;
-        const purchasedBuildings = new Set(); // 구매한 건물을 저장하는 세트
+        let friendCost = 100; // 친구 초기 비용 대폭 인상
+        const purchasedBuildings = new Set();
+        
+        // 다양한 친구 이모지 리스트
+        const friendEmojis = ["👦", "👩", "👨‍🦱", "👱‍♀️", "👴", "👵", "👳‍♂️", "👲", "🧑‍💻", "🧑‍🎨"];
 
         const ranks = [
             { name: "길거리 거지", emoji: "🏚️" }, { name: "동네 거지", emoji: "🧺" },
@@ -157,9 +159,9 @@
             if (money >= upgradeCost) {
                 money -= upgradeCost;
                 level++;
-                clickPower *= 2; 
-                upgradeCost = Math.floor(upgradeCost * 5);
-                showLog(`레벨업 성공! 현재 신분: ${ranks[level-1].name}`);
+                clickPower *= 2.5; // 클릭 효율 대폭 상향 (2배 -> 2.5배)
+                upgradeCost = Math.floor(upgradeCost * 3.2); // 신분 상승 비용 낮춤 (5배 -> 3.2배)
+                showLog(`레벨업! 클릭당 ${Math.floor(clickPower).toLocaleString()}원을 법니다.`);
             } else {
                 showLog(`돈이 부족합니다! (필요: ${upgradeCost.toLocaleString()}원)`);
             }
@@ -170,42 +172,42 @@
             if (money >= friendCost) {
                 money -= friendCost;
                 friends++;
-                autoIncome += (level * 10);
+                autoIncome += (level * 5); // 자동 수익 비중 낮춤
                 
+                // 랜덤 친구 이미지 추가
+                const randomEmoji = friendEmojis[Math.floor(Math.random() * friendEmojis.length)];
                 const group = document.getElementById('friend-group');
                 const newFriend = document.createElement('div');
                 newFriend.className = 'character-box';
-                newFriend.innerHTML = `<div class="emoji">👦</div><div class="name-tag">친구${friends}</div>`;
+                newFriend.innerHTML = `<div class="emoji">${randomEmoji}</div><div class="name-tag">조력자${friends}</div>`;
                 group.appendChild(newFriend);
                 
-                friendCost = Math.floor(friendCost * 2.5);
-                showLog("친구 고용 성공!");
+                friendCost = Math.floor(friendCost * 4); // 친구 비용 대폭 인상 (2.5배 -> 4배)
+                showLog("친구를 고용했습니다! 자동 수익이 소폭 증가합니다.");
             } else {
-                showLog(`돈이 부족합니다! (필요: ${friendCost.toLocaleString()}원)`);
+                showLog(`친구 고용비가 너무 비쌉니다! (필요: ${friendCost.toLocaleString()}원)`);
             }
             updateUI();
         }
 
         function buyBuilding(price, name, income, imgUrl) {
-            // [핵심] 이미 구매한 경우 함수 실행 중단
             if (purchasedBuildings.has(name)) return;
-
             if (money >= price) {
                 money -= price;
                 autoIncome += income;
-                purchasedBuildings.add(name); // 구매 목록에 추가
+                purchasedBuildings.add(name);
                 document.getElementById('game-screen').style.backgroundImage = `url('${imgUrl}')`;
-                showLog(`${name} 매입 완료! 이제 다시 살 수 없습니다.`);
+                showLog(`${name} 매입 완료!`);
             } else {
-                showLog(`돈이 부족합니다! (필요: ${price.toLocaleString()}원)`);
+                showLog(`건물이 너무 비쌉니다! (필요: ${price.toLocaleString()}원)`);
             }
             updateUI();
         }
 
         function updateUI() {
             document.getElementById('money').innerText = Math.floor(money).toLocaleString();
-            document.getElementById('click-power').innerText = clickPower.toLocaleString();
-            document.getElementById('auto-income').innerText = autoIncome.toLocaleString();
+            document.getElementById('click-power').innerText = Math.floor(clickPower).toLocaleString();
+            document.getElementById('auto-income').innerText = Math.floor(autoIncome).toLocaleString();
             
             const currentRank = ranks[Math.min(level - 1, ranks.length - 1)];
             document.getElementById('player-emoji').innerText = currentRank.emoji;
@@ -213,17 +215,15 @@
             document.getElementById('upgradeCost').innerText = upgradeCost.toLocaleString();
             document.getElementById('friendCost').innerText = friendCost.toLocaleString();
 
-            // 건물 버튼의 매입 여부 체크
-            checkBuildingStatus('b1', '원룸 빌딩');
-            checkBuildingStatus('b2', '강남 빌딩');
-            checkBuildingStatus('b3', '초호화 호텔');
-            checkBuildingStatus('b4', '우주 정거장');
+            checkBuildingStatus('b1', '아파트');
+            checkBuildingStatus('b2', '쇼핑몰');
+            checkBuildingStatus('b3', '랜드마크 빌딩');
+            checkBuildingStatus('b4', '화성 기지');
         }
 
         function checkBuildingStatus(id, name) {
             const btn = document.getElementById(id);
             if (purchasedBuildings.has(name)) {
-                // 이미 구매했다면 버튼을 완전히 비활성화
                 btn.disabled = true;
                 btn.innerText = "✅ 매입 완료";
             }
